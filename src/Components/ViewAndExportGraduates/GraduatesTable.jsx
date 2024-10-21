@@ -18,7 +18,6 @@ export const GraduatesTable = memo(
     filters,
   }) => {
     if (loading) return <Loading />;
-
     return (
       <div className="bg-white rounded-lg shadow">
         <div className="p-4">

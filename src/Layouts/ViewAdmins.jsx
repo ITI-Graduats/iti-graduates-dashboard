@@ -6,8 +6,12 @@ import Loading from "../Components/ui/Loading";
 import DeleteConfirmModal from "../Components/viewAdmins/DeleteConfirmModal";
 import Error from "../Components/ui/Error";
 import { useToast, TOAST_TYPES } from "../hooks/useToast";
+import { useAdminContext } from "../contexts/AdminContext";
+import authServices from "../services/authServices";
 
 function ViewAdmins() {
+  const { admin, setAdmin } = useAdminContext();
+
   const [admins, setAdmins] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,6 +24,10 @@ function ViewAdmins() {
       const response = await adminApiRequests.getAllAdmins();
       setAdmins(response.admins);
     } catch (error) {
+      if (error.message === "Unauthorized, Access token has expired") {
+        await authServices.refreshAccessToken(setAdmin);
+        return;
+      }
       setError(
         error.message || "Error Fetching admins, Please try again later"
       );
@@ -31,7 +39,7 @@ function ViewAdmins() {
 
   useEffect(() => {
     fetchAdmins();
-  }, []);
+  }, [admin]);
 
   const openModal = (admin) => {
     setAdminToDelete(admin);
@@ -52,6 +60,11 @@ function ViewAdmins() {
         );
         showToast("Admin deleted successfully", TOAST_TYPES.SUCCESS);
       } catch (error) {
+        if (error.message === "Unauthorized, Access token has expired") {
+          await authServices.refreshAccessToken(setAdmin);
+          await confirmDelete();
+          return;
+        }
         setError("Failed to delete admin. Please try again later.");
         showToast(error.message, TOAST_TYPES.ERROR);
       } finally {

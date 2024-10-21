@@ -28,7 +28,6 @@ export default function LoginForm() {
       await authServices.login(data, setAdmin);
       navigate("/", { replace: true });
     } catch (error) {
-      console.log(error);
       setError(error.message || "Something went wrong, Please try again later");
     } finally {
       setIsLoading(false);

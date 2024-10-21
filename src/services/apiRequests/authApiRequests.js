@@ -5,6 +5,11 @@ const login = async (adminData) => {
   return response;
 };
 
+const refreshAccessToken = async () => {
+  const response = await apiInstance.post("auth/refreshAccessToken");
+  return response;
+};
+
 const logout = async () => {
   const response = await apiInstance.post("auth/logout");
   return response;
@@ -12,5 +17,6 @@ const logout = async () => {
 
 export default {
   login,
-  logout
+  refreshAccessToken,
+  logout,
 };

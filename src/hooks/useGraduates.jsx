@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import graduatesApiRequests from "../services/apiRequests/graduatesApiRequests";
 import { useAdminContext } from "../contexts/AdminContext";
+import authServices from "../services/authServices";
 
 const useGraduates = (queryParams = {}) => {
-  const { admin } = useAdminContext();
+  const { admin, setAdmin } = useAdminContext();
   const [grads, setGrads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -80,6 +81,10 @@ const useGraduates = (queryParams = {}) => {
           setTotalPages(1);
         }
       } catch (err) {
+        if (err.message === "Unauthorized, Access token has expired") {
+          await authServices.refreshAccessToken(setAdmin);
+          return;
+        }
         setError(
           "Failed to fetch graduates: " +
             (err.message || "Something went wrong, please try again later.")
