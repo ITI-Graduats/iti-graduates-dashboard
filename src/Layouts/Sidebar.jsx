@@ -10,16 +10,21 @@ import {
 import { NavLink, useNavigate } from "react-router-dom";
 import authServices from "../services/authServices";
 import { useAdminContext } from "../contexts/AdminContext";
-import { ShieldPlus,ShieldCheck} from 'lucide-react';
+import { ShieldPlus } from "lucide-react";
 
 const Sidebar = ({ open, setOpen }) => {
   const { admin, setAdmin } = useAdminContext();
 
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    authServices.logout(setAdmin);
-    navigate("/login");
+  const handleLogout = async (e) => {
+    e.preventDefault();
+    try {
+      await authServices.logout(setAdmin);
+      navigate("/login");
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const menus = [
@@ -44,7 +49,8 @@ const Sidebar = ({ open, setOpen }) => {
     },
     {
       name: "Logout",
-      link: "/login",
+      // i did this ON PURPOSE to cancel the navigation effect, please don't update...
+      link: "usama",
       icon: LogOut,
       action: handleLogout,
       margin: true,
@@ -76,7 +82,7 @@ const Sidebar = ({ open, setOpen }) => {
         {open && (
           <div className="flex flex-col justify-center items-center border-b-2 pt-1">
             <div className="relative h-24 w-24 rounded-full  border-4 border-main   overflow-hidden">
-              <img src="admin.jpg" alt="admin avatar"  />
+              <img src="admin.jpg" alt="admin avatar" />
             </div>
             <p className="my-1 text-center text-main font-semibold whitespace-pre duration-500  ">
               {admin.role === "super admin" ? (

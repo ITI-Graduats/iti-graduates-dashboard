@@ -19,6 +19,7 @@ import chartsDataApiRequests from "../services/apiRequests/chartsDataApiRequests
 import { useAdminContext } from "../contexts/AdminContext";
 import Error from "../Components/ui/Error";
 import { useToast, TOAST_TYPES } from "../hooks/useToast";
+import authServices from "../services/authServices";
 
 const menus = [
   { name: "View Graduates", link: "/view-and-export-graduates", icon: Search },
@@ -30,8 +31,7 @@ const menus = [
 ];
 
 const Dashboard = () => {
-  const { admin } = useAdminContext();
-
+  const { admin, setAdmin } = useAdminContext();
   const [graduateData, setGraduateData] = useState([]);
   const [totalGraduates, setTotalGraduates] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -48,7 +48,7 @@ const Dashboard = () => {
 
   const pieChartData = [
     {
-      name: admin.branch || "smart village" ,
+      name: admin.branch || "smart village",
       value:
         graduateData.find((branch) => branch.branch === admin.branch)
           ?.graduates || 0,
@@ -78,6 +78,10 @@ const Dashboard = () => {
         setTotalGraduates(total);
       }
     } catch (error) {
+      if (error.message === "Unauthorized, Access token has expired") {
+        await authServices.refreshAccessToken(setAdmin);
+        return;
+      }
       setError(
         error.message ||
           "An error occurred while fetching data. Please try again later or contact support."
@@ -90,7 +94,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [admin]);
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -175,7 +179,8 @@ const Dashboard = () => {
         </div>
         <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md flex-1">
           <h3 className="text-base sm:text-lg lg:text-xl xl:text-2xl text-main font-bold text-center mb-6">
-           {admin.role === "admin"? admin.branch:"smart village" } vs Other Graduates
+            {admin.role === "admin" ? admin.branch : "smart village"} vs Other
+            Graduates
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>

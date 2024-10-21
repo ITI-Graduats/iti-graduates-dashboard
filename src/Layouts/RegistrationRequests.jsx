@@ -7,9 +7,10 @@ import registrationRequestsApiRequests from "../services/apiRequests/registratio
 import { useAdminContext } from "../contexts/AdminContext";
 import Error from "../Components/ui/Error";
 import { useToast, TOAST_TYPES } from "../hooks/useToast";
+import authServices from "../services/authServices";
 
 function RegistrationRequests() {
-  const { admin } = useAdminContext();
+  const { admin, setAdmin } = useAdminContext();
 
   const [registrationRequests, setRegistrationRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,6 +30,10 @@ function RegistrationRequests() {
       }
       setRegistrationRequests(response.requests);
     } catch (error) {
+      if (error.message === "Unauthorized, Access token has expired") {
+        await authServices.refreshAccessToken(setAdmin);
+        return;
+      }
       setError(error.message || "Something went wrong, Please try again later");
       showToast(error.message, TOAST_TYPES.ERROR);
     } finally {
@@ -38,7 +43,7 @@ function RegistrationRequests() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [admin]);
 
   const handleReject = useCallback(async (registrationRequest) => {
     try {
@@ -53,6 +58,11 @@ function RegistrationRequests() {
       );
       showToast("Request rejected Successfully", TOAST_TYPES.SUCCESS);
     } catch (error) {
+      if (error.message === "Unauthorized, Access token has expired") {
+        await authServices.refreshAccessToken(setAdmin);
+        await handleReject(registrationRequest);
+        return;
+      }
       setError(error.message || "Something went wrong, Please try again later");
       showToast(error.message, TOAST_TYPES.ERROR);
     } finally {
@@ -63,10 +73,10 @@ function RegistrationRequests() {
   const handleAccept = useCallback(async (registrationRequest) => {
     try {
       setDisableBtns(true);
-      const res =
-        await registrationRequestsApiRequests.acceptRegistrationRequest(
-          registrationRequest._id
-        );
+
+      await registrationRequestsApiRequests.acceptRegistrationRequest(
+        registrationRequest._id
+      );
       setRegistrationRequests((prev) =>
         prev.filter((item) => {
           return item._id !== registrationRequest._id;
@@ -74,6 +84,11 @@ function RegistrationRequests() {
       );
       showToast("Request accepted Successfully", TOAST_TYPES.SUCCESS);
     } catch (error) {
+      if (error.message === "Unauthorized, Access token has expired") {
+        await authServices.refreshAccessToken(setAdmin);
+        await handleAccept(registrationRequest);
+        return;
+      }
       setError(error.message || "Something went wrong, Please try again later");
       showToast(error.message, TOAST_TYPES.ERROR);
     } finally {

@@ -4,8 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { useBranchesAndTracks } from "../contexts/BranchesAndTracksContext";
 import { useToast, TOAST_TYPES } from "../hooks/useToast";
 import Error from "../Components/ui/Error";
+import authServices from "../services/authServices";
+import { useAdminContext } from "../contexts/AdminContext";
 
 export default function CreateNewAdmin() {
+  const { setAdmin } = useAdminContext();
+
   const navigate = useNavigate();
 
   const { branches } = useBranchesAndTracks();
@@ -60,6 +64,11 @@ export default function CreateNewAdmin() {
       showToast("New admin created successfully", TOAST_TYPES.SUCCESS);
       navigate("/view-admins");
     } catch (error) {
+      if (error.message === "Unauthorized, Access token has expired") {
+        await authServices.refreshAccessToken(setAdmin);
+        await handleSubmit(e);
+        return;
+      }
       setErrorMessage(error.message || "Failed to create admin");
       showToast(error.message, TOAST_TYPES.ERROR);
       setResponseMessage("");
