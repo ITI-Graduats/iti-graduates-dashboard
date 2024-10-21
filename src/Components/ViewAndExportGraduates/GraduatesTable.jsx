@@ -49,7 +49,7 @@ export const GraduatesTable = memo(
               {grads?.length > 0 ? (
                 grads.map((grad) => (
                   <TableRow
-                    key={grad.email}
+                    key={grad._id}
                     grad={grad}
                     onExpandRow={setExpandedRow}
                     isExpanded={expandedRow === grad._id}
